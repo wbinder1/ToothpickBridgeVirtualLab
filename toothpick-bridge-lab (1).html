@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#15212a">
+  <title>Virtual Toothpick Bridge Lab</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172630;
+      --muted: #61717a;
+      --paper: #f4f2ec;
+      --panel: #fffefa;
+      --line: #d9ded9;
+      --navy: #182b36;
+      --navy-2: #233a47;
+      --orange: #e87932;
+      --orange-dark: #bd5520;
+      --mint: #98cfbd;
+      --blue: #5ea8bf;
+      --wood: #dfa45f;
+      --wood-dark: #8c5526;
+      --danger: #c94e40;
+      --ok: #24785d;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--paper); min-width: 320px; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .shell { max-width: 1440px; margin: 0 auto; padding: 24px 30px 36px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: var(--navy); box-shadow: 0 5px 12px #182b3620; }
+    .brand-mark svg { width: 30px; height: 30px; }
+    .brand-kicker { margin: 0 0 2px; color: var(--orange-dark); font-size: 10px; font-weight: 850; letter-spacing: .16em; text-transform: uppercase; }
+    .brand-name { margin: 0; max-width: 560px; font-size: 16px; line-height: 1.12; letter-spacing: -.035em; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #53a884; box-shadow: 0 0 0 4px #53a88420; }
+    .tabs { display: flex; gap: 7px; padding: 5px; background: #e6e6df; border-radius: 13px; }
+    .tab { display: flex; align-items: center; gap: 9px; border: 0; border-radius: 9px; padding: 11px 16px; color: #5c6a70; background: transparent; font-size: 13px; font-weight: 750; transition: .18s ease; }
+    .tab:hover { color: var(--ink); }
+    .tab.active { color: #fff; background: var(--navy); box-shadow: 0 2px 7px #17263028; }
+    .tab-num { font-size: 10px; font-weight: 850; opacity: .68; letter-spacing: .08em; }
+    .intro { margin: 23px 0 19px; display: flex; align-items: end; justify-content: space-between; gap: 18px; }
+    .eyebrow { color: var(--orange-dark); font-size: 10px; font-weight: 850; letter-spacing: .17em; text-transform: uppercase; }
+    h1 { margin: 4px 0 5px; font-size: clamp(25px,3vw,34px); letter-spacing: -.05em; line-height: 1.08; }
+    .intro p { margin: 0; max-width: 660px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .step-chip { flex: none; padding: 8px 11px; border: 1px solid var(--line); border-radius: 9px; background: #fffefa; color: #60717a; font-size: 11px; font-weight: 750; }
+    .workspace { display: grid; grid-template-columns: minmax(230px, 278px) minmax(0,1fr); gap: 16px; align-items: stretch; }
+    .panel { border: 1px solid #e0e2dc; border-radius: 16px; background: var(--panel); box-shadow: 0 6px 22px #1b303b08; }
+    .tools-panel { padding: 19px; }
+    .section-title { margin: 0; font-size: 13px; font-weight: 850; letter-spacing: -.01em; }
+    .section-caption { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .tool-divider { height: 1px; margin: 17px 0; background: #e8e9e4; }
+    .dim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 13px; }
+    .field { display: block; color: #66757c; font-size: 10px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+    .field input { width: 100%; margin-top: 5px; padding: 9px 9px; border: 1px solid #dce1dc; border-radius: 8px; outline: 0; color: var(--ink); background: white; font-size: 13px; font-weight: 750; }
+    .field input:focus { border-color: #7cb8c8; box-shadow: 0 0 0 3px #5ea8bf1c; }
+    .unit { margin-left: 2px; color: #859096; font-size: 9px; }
+    .layout-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 9px; }
+    .count-badge { padding: 4px 7px; border-radius: 20px; color: #79512e; background: #f6ead9; font-size: 10px; font-weight: 800; white-space: nowrap; }
+    .view-picker { display: grid; gap: 6px; }
+    .view-button { width: 100%; display: flex; align-items: center; justify-content: space-between; border: 1px solid transparent; border-radius: 9px; padding: 9px 10px; text-align: left; color: #53636b; background: transparent; font-size: 11px; font-weight: 750; }
+    .view-button:hover { background: #f3f5f1; }
+    .view-button.active { border-color: #cedbd8; color: var(--navy); background: #edf4f1; }
+    .view-button small { color: #879196; font-size: 9px; font-weight: 650; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 12px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; border: 1px solid transparent; border-radius: 9px; padding: 9px 11px; font-size: 11px; font-weight: 800; transition: .15s ease; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary { color: white; background: var(--orange); box-shadow: 0 3px 9px #e879322c; }
+    .btn-primary:hover:not(:disabled) { background: #d96927; transform: translateY(-1px); }
+    .btn-dark { color: #fff; background: var(--navy); }
+    .btn-dark:hover:not(:disabled) { background: #254451; }
+    .btn-light { border-color: #dde2dc; color: #40545e; background: #fff; }
+    .btn-light:hover:not(:disabled) { background: #f5f6f2; }
+    .btn-danger { border-color: #efd8d2; color: #a4483c; background: #fff8f5; }
+    .tool-note { margin-top: 13px; padding: 10px 11px; border-radius: 9px; color: #5c6e74; background: #f3f5f0; font-size: 10px; line-height: 1.5; }
+    .tool-note strong { color: #263c45; }
+    .legend { display: flex; flex-wrap: wrap; gap: 12px; color: #68787d; font-size: 10px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-line { display: inline-block; width: 21px; height: 4px; border-radius: 2px; background: var(--wood); box-shadow: 0 1px 0 var(--wood-dark); }
+    .legend-joint { width: 8px; height: 8px; border: 1.5px solid #7e9a9b; border-radius: 50%; background: #fff; }
+    .legend-available { width: 9px; height: 9px; border: 1.5px solid #398b72; border-radius: 50%; background: #9dd8c1; }
+    .legend-support { width: 0; height: 0; border-right: 5px solid transparent; border-bottom: 7px solid #324d58; border-left: 5px solid transparent; }
+    .design-canvas-panel { display: flex; min-width: 0; flex-direction: column; overflow: hidden; }
+    .canvas-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 15px 18px; border-bottom: 1px solid #e8e9e4; }
+    .canvas-title { margin: 0; font-size: 12px; font-weight: 850; }
+    .canvas-tools { display: flex; align-items: center; gap: 7px; }
+    .icon-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 32px; border: 1px solid #dce2dd; border-radius: 8px; padding: 6px 9px; color: #52656e; background: white; font-size: 10px; font-weight: 750; }
+    .icon-btn:hover:not(:disabled) { background: #f4f6f2; }
+    .icon-btn.active { border-color: #e3a36f; color: #a44e20; background: #fff3e9; }
+    .icon-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .board-wrap { position: relative; min-height: 345px; flex: 1; padding: 10px 12px 0; background: #f8f8f3; }
+    .board-wrap::before { position: absolute; inset: 0; pointer-events: none; content: ""; background-image: radial-gradient(#dce3dc 1px, transparent 1px); background-size: 22px 22px; opacity: .52; }
+    .board-svg { position: relative; display: block; width: 100%; min-height: 330px; overflow: visible; touch-action: none; }
+    .canvas-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 17px 13px; border-top: 1px solid #e8e9e4; color: #64737a; font-size: 10px; }
+    .status-inline { display: inline-flex; align-items: center; gap: 7px; }
+    .status-inline .live-dot { width: 6px; height: 6px; box-shadow: none; }
+    .canvas-foot .muted { color: #8a9699; text-align: right; }
+    .design-info { margin-top: 15px; display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+    .info-card { padding: 12px 14px; border: 1px solid #e0e2dc; border-radius: 12px; background: #fffefa; }
+    .info-label { color: #77858a; font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .info-value { margin-top: 5px; font-size: 17px; font-weight: 850; letter-spacing: -.04em; }
+    .info-sub { margin-top: 2px; color: #748187; font-size: 9px; }
+    .test-workspace { display: grid; grid-template-columns: minmax(0,1fr) minmax(260px,320px); gap: 16px; align-items: stretch; }
+    .test-visual { overflow: hidden; display: flex; min-height: 490px; flex-direction: column; }
+    .test-svg-wrap { flex: 1; min-height: 375px; padding: 10px 8px 0; background: #f7f8f4; }
+    .test-svg { display: block; width: 100%; height: 100%; min-height: 380px; }
+    .test-caption { display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid #e8e9e4; color: #65757b; font-size: 10px; }
+    .load-panel { padding: 19px; }
+    .load-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .bucket-tag { padding: 5px 7px; border-radius: 6px; color: #a74b1c; background: #fff0e3; font-size: 9px; font-weight: 850; letter-spacing: .05em; white-space: nowrap; }
+    .load-intro { margin: 8px 0 15px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .gauge-card { padding: 14px; border: 1px solid #e4e7e1; border-radius: 12px; background: #fbfbf8; }
+    .gauge-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .gauge-heading span:first-child { color: #637279; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+    .gauge-number { color: var(--ink); font-size: 25px; font-weight: 900; letter-spacing: -.05em; }
+    .gauge-number small { font-size: 12px; font-weight: 750; letter-spacing: 0; }
+    .gauge-track { height: 9px; margin: 10px 0 7px; overflow: hidden; border-radius: 10px; background: #eceee8; }
+    .gauge-fill { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg,#83c6b0,#ddad57,#e87932); transition: width .6s cubic-bezier(.2,.7,.2,1); }
+    .gauge-foot { display: flex; justify-content: space-between; color: #869195; font-size: 9px; }
+    .load-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+    .metric { padding: 11px 12px; border: 1px solid #e4e7e1; border-radius: 10px; background: white; }
+    .metric-label { color: #76848a; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .metric-value { margin-top: 5px; font-size: 16px; font-weight: 850; letter-spacing: -.03em; }
+    .metric-sub { margin-top: 2px; color: #859197; font-size: 9px; }
+    .load-actions { display: grid; gap: 7px; margin-top: 11px; }
+    .load-actions .btn { min-height: 43px; font-size: 12px; }
+    .status-box { margin-top: 12px; padding: 11px 12px; border: 1px solid #dce8e2; border-radius: 10px; color: #316c57; background: #f2f8f4; font-size: 10px; line-height: 1.5; }
+    .status-box.failed { border-color: #f0d5ce; color: #a24338; background: #fff5f1; }
+    .status-box.neutral { border-color: #e4e6df; color: #63737a; background: #f7f8f4; }
+    .physics-details { margin-top: 14px; border: 1px solid #e4e7e1; border-radius: 10px; background: #fff; }
+    .physics-details summary { padding: 10px 11px; color: #41555e; font-size: 10px; font-weight: 800; cursor: pointer; }
+    .physics-copy { padding: 0 11px 11px; color: #6e7d83; font-size: 9px; line-height: 1.55; }
+    .physics-copy ul { margin: 5px 0 0; padding-left: 15px; }
+    .physics-copy li { margin: 3px 0; }
+    .iteration-panel { margin-top: 15px; padding: 17px; border: 1px solid #e0e2dc; border-radius: 14px; background: #fffefa; }
+    .iteration-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .iteration-head p { margin: 4px 0 0; color: var(--muted); font-size: 10px; }
+    .iteration-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 13px; }
+    .iteration-card { min-height: 65px; padding: 10px 11px; border: 1px solid #e2e5df; border-radius: 10px; background: #fbfbf8; }
+    .iteration-card.active { border-color: #e5a16c; background: #fff5eb; }
+    .iteration-card.done { border-color: #bed7cc; background: #f1f8f4; }
+    .iteration-card strong { display: block; color: #334953; font-size: 10px; }
+    .iteration-card span { display: block; margin-top: 5px; color: #7b898d; font-size: 9px; }
+    .iteration-status { margin: 11px 0 0; color: #66767b; font-size: 10px; line-height: 1.5; }
+    .save-help { margin: 2px 1px 0; color: #77858b; font-size: 9px; line-height: 1.4; }
+    .report-screen { padding: 20px; border: 1px solid #e0e2dc; border-radius: 16px; background: #fffefa; box-shadow: 0 6px 22px #1b303b08; }
+    .report-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+    .report-frame { width: 100%; height: min(78vh,850px); border: 1px solid #e0e2dc; border-radius: 10px; background: white; }
+    .modal-overlay { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; padding: 16px; background: #14242dcc; }
+    .name-dialog { width: min(420px,100%); padding: 23px; border: 1px solid #e2e4de; border-radius: 16px; background: #fffefa; box-shadow: 0 22px 70px #0d1c2580; }
+    .name-dialog h2 { margin: 0; font-size: 21px; letter-spacing: -.04em; }
+    .name-dialog p { margin: 7px 0 15px; color: #63737a; font-size: 12px; line-height: 1.5; }
+    .name-dialog input { width: 100%; padding: 11px 12px; border: 1px solid #d9e0da; border-radius: 9px; outline: none; font-size: 14px; }
+    .name-dialog input:focus { border-color: #7cb8c8; box-shadow: 0 0 0 3px #5ea8bf1c; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+    .page-foot { margin-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #7c898d; font-size: 9px; }
+    .page-foot strong { color: #465a63; }
+    .hidden { display: none !important; }
+    .screen-reader { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 980px) {
+      .workspace { grid-template-columns: 235px minmax(0,1fr); }
+      .test-workspace { grid-template-columns: minmax(0,1fr) 275px; }
+      .shell { padding-right: 20px; padding-left: 20px; }
+      .tools-panel, .load-panel { padding: 15px; }
+      .canvas-head { padding-right: 13px; padding-left: 13px; }
+    }
+    @media (max-width: 760px) {
+      .shell { padding: 17px 13px 25px; }
+      .topbar { margin-bottom: 19px; }
+      .intro { align-items: start; flex-direction: column; margin-top: 18px; }
+      .workspace, .test-workspace { grid-template-columns: 1fr; }
+      .tools-panel { order: 2; }
+      .design-canvas-panel { order: 1; }
+      .board-wrap { min-height: 290px; padding-right: 4px; padding-left: 4px; }
+      .board-svg { min-height: 270px; }
+      .test-visual { min-height: 410px; }
+      .test-svg-wrap { min-height: 330px; }
+      .test-svg { min-height: 320px; }
+      .iteration-cards { grid-template-columns: 1fr; }
+      .iteration-head { align-items: flex-start; flex-direction: column; }
+      .report-screen { padding: 13px; }
+      .design-info { gap: 6px; }
+      .info-card { padding: 10px; }
+      .info-value { font-size: 15px; }
+    }
+    @media (max-width: 450px) {
+      .topbar { align-items: flex-start; flex-direction: column; gap: 12px; }
+      .brand-name { max-width: calc(100vw - 92px); font-size: 14px; }
+      .tabs { width: 100%; }
+      .tab { flex: 1; justify-content: center; padding: 10px 8px; }
+      .canvas-head { align-items: flex-start; flex-direction: column; }
+      .canvas-tools { width: 100%; }
+      .canvas-tools .icon-btn { flex: 1; }
+      .canvas-foot { align-items: flex-start; flex-direction: column; }
+      .canvas-foot .muted { text-align: left; }
+      .design-info { grid-template-columns: 1fr 1fr; }
+      .step-chip { align-self: flex-start; }
+    }
+
+    .toothpick { cursor: grab; }
+    .toothpick:active { cursor: grabbing; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40" fill="none">
+            <path d="M5 29h30M8 29l7-12 6 7 5-10 7 15M9 29v4m22-4v4" stroke="#f0a45f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="15" cy="17" r="1.8" fill="#f8dfbd"/><circle cx="21" cy="24" r="1.8" fill="#f8dfbd"/><circle cx="26" cy="14" r="1.8" fill="#f8dfbd"/>
+          </svg>
+        </div>
+        <div><p class="brand-kicker">Conceptual Physics</p><h2 class="brand-name">Virtual Toothpick Bridge Lab</h2></div>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Bridge activity">
+      <button class="tab active" id="designTab" role="tab" aria-selected="true" aria-controls="designScreen"><span class="tab-num">01</span> Design bridge</button>
+      <button class="tab" id="testTab" role="tab" aria-selected="false" aria-controls="testScreen"><span class="tab-num">02</span> Load test</button>
+    </nav>
+
+    <section class="intro">
+      <div>
+        <div class="eyebrow" id="introEyebrow">Plan • connect • refine</div>
+        <h1 id="introTitle">Build a bridge that carries the bucket.</h1>
+        <p id="introDescription">Design an original bridge, test it with the hanging bucket, then improve your design through two more iterations.</p>
+      </div>
+      <div class="step-chip" id="stepChip">DESIGN MODE · 3D TRUSS MODEL</div>
+    </section>
+
+    <main>
+      <section id="designScreen" role="tabpanel" aria-labelledby="designTab">
+        <div class="workspace">
+          <aside class="panel tools-panel">
+            <div class="layout-heading"><h3 class="section-title">Bridge setup</h3><span class="count-badge" id="pickCount">0 toothpicks</span></div>
+            <p class="section-caption">All three designs use the same bridge dimensions.</p>
+            <div class="tool-divider"></div>
+            <div class="layout-heading"><h3 class="section-title">Choose a view</h3></div>
+            <div class="view-picker" role="tablist" aria-label="Bridge design view">
+              <button class="view-button active" data-view="side" role="tab" aria-selected="true"><span>Side Profile</span><small>Both sides</small></button>
+              <button class="view-button" data-view="plan" role="tab" aria-selected="false"><span>Top/Bottom Profile</span><small>Shared layout</small></button>
+            </div>
+            <div class="actions">
+              <button class="btn btn-primary" id="addPickBtn" title="Click two joints on the grid to place a toothpick"><span aria-hidden="true">＋</span> Add toothpick</button>
+              <button class="btn btn-light" id="undoBtn" disabled><span aria-hidden="true">↶</span> Undo</button>
+              <button class="btn btn-danger" id="removeBtn" disabled>Remove selected</button>
+              <button class="btn btn-light" id="clearViewBtn">Clear this view</button>
+            </div>
+            <div class="tool-note" id="placementHelp"><strong>To place:</strong> click any joint, then click a highlighted neighboring joint. Each pick spans one edge or one diagonal. Drag picks or joints to rearrange them.</div>
+            <div class="tool-divider"></div>
+            <div class="legend" aria-label="Drawing legend">
+              <span class="legend-item"><i class="legend-line"></i>Toothpick</span>
+              <span class="legend-item"><i class="legend-joint"></i>Joint</span>
+              <span class="legend-item"><i class="legend-available"></i>Available joint</span>
+              <span class="legend-item"><i class="legend-support"></i>Support</span>
+            </div>
+          </aside>
+
+          <section class="panel design-canvas-panel" aria-label="Bridge design canvas">
+            <div class="canvas-head">
+              <div><h3 class="canvas-title" id="designViewTitle">Side profile · mirrored to both sides</h3></div>
+              <div class="canvas-tools"><button class="icon-btn" id="rotateHint" type="button" aria-label="Editing instructions">ⓘ <span>How to edit</span></button><button class="icon-btn" id="selectModeBtn" type="button">↖ Select / move</button></div>
+            </div>
+            <div class="board-wrap">
+              <svg class="board-svg" id="designSvg" viewBox="0 0 760 430" role="application" aria-label="Toothpick bridge design grid"></svg>
+            </div>
+            <div class="canvas-foot"><span class="status-inline"><span class="live-dot" id="designStatusDot"></span><span id="designStatus">Click a joint, then an adjacent highlighted joint to add a toothpick.</span></span><span class="muted">Grid nodes are joints · toothpicks are one member each</span></div>
+          </section>
+        </div>
+        <div class="design-info" aria-label="Bridge design summary">
+          <div class="info-card"><div class="info-label">Toothpicks used</div><div class="info-value" id="summaryPicks">0</div><div class="info-sub">physical sticks in the bridge</div></div>
+          <div class="info-card"><div class="info-label">Model connection</div><div class="info-value" id="summaryJoints">—</div><div class="info-sub">unique joints in your layout</div></div>
+        </div>
+        <section class="iteration-panel" aria-label="Design iteration progress">
+          <div class="iteration-head"><div><h3 class="section-title">Three design rounds</h3><p>Test and record the original bridge, then two improved designs.</p></div><button class="btn btn-light" id="restartChallengeBtn" type="button">Start over</button></div>
+          <div class="iteration-cards" id="iterationCards"></div>
+          <p class="iteration-status" id="iterationStatus">Design your original bridge, then open Load Test and test it.</p>
+        </section>
+      </section>
+
+      <section id="testScreen" class="hidden" role="tabpanel" aria-labelledby="testTab">
+        <div class="test-workspace">
+          <section class="panel test-visual" aria-label="Animated bridge load test">
+            <div class="canvas-head"><div><h3 class="canvas-title">Toothpick Bridge Virtual Test Environment</h3></div><span class="bucket-tag">7 GAL PAIL</span></div>
+            <div class="test-svg-wrap"><svg id="testSvg" class="test-svg" viewBox="0 0 760 450" role="img" aria-label="Bridge with an orange bucket hanging from the center"></svg></div>
+            <div class="test-caption"><span>Supports hold both ends · load is shared across the bridge width</span><span id="deformationNote">Deflection view: 12×</span></div>
+          </section>
+          <aside class="panel load-panel">
+            <div class="load-title-row"><h3 class="section-title">Add water</h3><span class="bucket-tag">HOME CENTER PAIL</span></div>
+            <p class="load-intro">The empty bucket hangs at midspan. Add water in measured steps and watch the bridge respond.</p>
+            <div class="gauge-card">
+              <div class="gauge-heading"><span>Water in bucket</span><span class="gauge-number"><span id="waterValue">0.00</span><small> gal</small></span></div>
+              <div class="gauge-track" role="progressbar" aria-label="Bucket fill" aria-valuemin="0" aria-valuemax="7" aria-valuenow="0"><div class="gauge-fill" id="gaugeFill"></div></div>
+              <div class="gauge-foot"><span>Empty</span><span>7 gallon capacity</span></div>
+            </div>
+            <div class="load-metrics">
+              <div class="metric"><div class="metric-label">Suspended load</div><div class="metric-value" id="loadValue">1.6 lb</div><div class="metric-sub">bucket + water</div></div>
+              <div class="metric"><div class="metric-label">Scored toothpicks</div><div class="metric-value" id="testPickCount">0</div><div class="metric-sub">Side + Top/Bottom only</div></div>
+              <div class="metric"><div class="metric-label">Scored bridge weight</div><div class="metric-value" id="bridgeWeightValue">0.00 lb</div><div class="metric-sub">Side + Top/Bottom only</div></div>
+              <div class="metric"><div class="metric-label">Weight held</div><div class="metric-value" id="weightHeldValue">0.0 lb</div><div class="metric-sub">last stable load</div></div>
+              <div class="metric"><div class="metric-label">Design score</div><div class="metric-value" id="scoreValue">0</div><div class="metric-sub">automatically recorded</div></div>
+            </div>
+            <div class="load-actions">
+              <button class="btn btn-primary" id="addWaterBtn"><span aria-hidden="true">＋</span> Add 0.1 gal water</button>
+              <button class="btn btn-light" id="resetTestBtn">Reset load test</button>
+              <button class="btn btn-dark" id="saveIterationBtn" disabled>Test the design to record it</button>
+              <p class="save-help" id="saveHelp">Finish the test by reaching the pail capacity or the bridge’s first predicted failure.</p>
+            </div>
+            <div class="status-box neutral" id="testStatus" role="status" aria-live="polite">Ready. Add water to increase the load in 0.1 gallon steps.</div>
+          </aside>
+        </div>
+      </section>
+      <section id="reportScreen" class="report-screen hidden" aria-label="Student bridge report">
+        <div class="eyebrow">Bridge challenge complete</div>
+        <h2 style="margin:5px 0 4px;font-size:27px;letter-spacing:-.04em">Your iteration report is ready.</h2>
+        <p class="section-caption">Your original bridge and both reiterations are saved in this report.</p>
+        <div class="report-actions"><button class="btn btn-primary" id="savePdfBtn">Save as PDF</button><button class="btn btn-light" id="saveJpegBtn">Save as JPEG</button><button class="btn btn-light" id="editNameBtn">Change student name</button></div>
+        <iframe class="report-frame" id="reportFrame" title="Bridge design report preview" sandbox=""></iframe>
+      </section>
+    </main>
+    <footer class="page-foot"><span><strong>CONCEPTUAL PHYSICS</strong> · Toothpick bridge design lab</span><span>Build carefully · test incrementally · revise your truss</span></footer>
+  </div>
+
+  <div class="screen-reader" id="liveRegion" aria-live="polite"></div>
+  <div class="modal-overlay hidden" id="nameModal">
+    <form class="name-dialog" id="nameForm" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
+      <div class="eyebrow">Final step · report</div><h2 id="nameTitle">Who designed these bridges?</h2>
+      <p>Enter the student’s name. The report will include all three designs, their scores, and test results.</p>
+      <label class="field" for="studentNameInput">Student name</label><input id="studentNameInput" name="studentName" autocomplete="name" required maxlength="80" placeholder="First and last name">
+      <div class="dialog-actions"><button class="btn btn-light" id="cancelNameBtn" type="button">Not yet</button><button class="btn btn-primary" type="submit">Generate report</button></div>
+    </form>
+  </div>
+  <script>
+  (() => {
+    "use strict";
+    const NS = "http://www.w3.org/2000/svg";
+    const SPAN_STATIONS = 7;
+    const SIDE_LEVELS = 3;
+    const WATER_STEP = 0.1;
+    const BUCKET_GALLONS = 7;
+    const BUCKET_EMPTY_LB = 1.6;
+    const FULL_BUCKET_LOAD_LB = BUCKET_EMPTY_LB + BUCKET_GALLONS * 8.34;
+    const G = 9.80665;
+    const IN_TO_M = 0.0254;
+    const MATERIAL = { E: 9.0e9, diameter: 0.002, density: 700, tensileStrength: 35.0e6, bendingStrength: 60.0e6, glueLimit: 75 };
+    const A = Math.PI * MATERIAL.diameter * MATERIAL.diameter / 4;
+    const I = Math.PI * Math.pow(MATERIAL.diameter, 4) / 64;
+    const $ = (id) => document.getElementById(id);
+
+    const state = {
+      design: { side: [], plan: [] },
+      view: "side", addMode: false, firstPoint: null, selected: null, undo: [],
+      dimensions: { span: 9, width: 2, height: 2 },
+      test: { water: 0, started: false, failed: false, capacityReached: false, result: null, failure: null, failureReason: "", weightHeldLb: 0 },
+      iterationIndex: 0, savedDesigns: [], studentName: "", reportHtml: "",
+      dragging: null, suppressClick: false
+    };
+    let nextId = 1;
+
+    function svgEl(tag, attrs = {}, text = null) {
+      const e = document.createElementNS(NS, tag);
+      for (const [key, value] of Object.entries(attrs)) e.setAttribute(key, String(value));
+      if (text !== null) e.textContent = text;
+      return e;
+    }
+    function makeId() { return `pick-${nextId++}`; }
+    function pointKey(p) { return `${p[0]},${p[1]}`; }
+    function edgeKey(a,b) { return [pointKey(a), pointKey(b)].sort().join("|"); }
+    function physicalEdgeKey(a,b){return [nodeKey(...a),nodeKey(...b)].sort().join("|");}
+    function fitsOnePick(view,a,b) {
+      const dx=Math.abs(a[0]-b[0]),dy=Math.abs(a[1]-b[1]);
+      const xMax=6,yMax=2;
+      return dx<=1&&dy<=1&&a[0]>=0&&b[0]>=0&&a[0]<=xMax&&b[0]<=xMax&&a[1]>=0&&b[1]>=0&&a[1]<=yMax&&b[1]<=yMax&&(dx+dy)>0;
+    }
+    function activeList(view = state.view) { return state.design[view]; }
+    function cloneDesign() { return JSON.parse(JSON.stringify(state.design)); }
+    function pushUndo() {
+      state.undo.push(cloneDesign());
+      if (state.undo.length > 30) state.undo.shift();
+      $("undoBtn").disabled = false;
+    }
+    function resetTestForDesignChange() {
+      state.test = { water: 0, started: false, failed: false, capacityReached: false, result: null, failure: null, failureReason: "", weightHeldLb: 0 };
+      if (!$('testScreen').classList.contains('hidden')) renderTest();
+    }
+    function addMember(view, a, b, record = true) {
+      if (!fitsOnePick(view,a,b)) return false;
+      const list = state.design[view];
+      if (list.some(m => edgeKey(m.a,m.b) === edgeKey(a,b))) return false;
+      if (record) pushUndo();
+      list.push({ id: makeId(), a: [...a], b: [...b] });
+      state.selected = { view, id: list[list.length - 1].id };
+      resetTestForDesignChange();
+      return true;
+    }
+    function viewPoints(view) {
+      return [...Array(7)].flatMap((_,i) => [...Array(3)].map((__,j) => [i,j]));
+    }
+    function toBoard(p, view = state.view) {
+      return { x: 72 + p[0]*102, y: 340 - p[1]*94 };
+    }
+    function boardToGrid(p, view = state.view) {
+      return [Math.max(0,Math.min(6,Math.round((p.x-72)/102))), Math.max(0,Math.min(2,Math.round((340-p.y)/94)))];
+    }
+    function eventToSvg(evt, svg) {
+      const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+      const matrix = svg.getScreenCTM();
+      if (!matrix) return {x:0,y:0};
+      const p = pt.matrixTransform(matrix.inverse()); return {x:p.x,y:p.y};
+    }
+    function addLabel(svg, x,y,text, attrs={}) { svg.appendChild(svgEl("text", {x,y,fill:"#829095","font-size":10,"font-weight":750,"letter-spacing":".08em",...attrs}, text)); }
+    function drawBoardBackdrop(svg, view) {
+      const isSide = view === "side";
+      const stations = [...Array(7)].map((_,i)=>72+i*102);
+      const ys = [340,246,152];
+      stations.forEach((x,i)=>{
+        svg.appendChild(svgEl("line",{x1:x,y1:133,x2:x,y2:355,stroke:i===0||i===6?"#c7d2ce":"#e0e6df","stroke-width":i===0||i===6?1.5:1,"stroke-dasharray":i===0||i===6?"":"4 6"}));
+        addLabel(svg,x,384,String(i+1).padStart(2,"0"),{"text-anchor":"middle","font-size":8,fill:"#9aa5a4"});
+      });
+      ys.forEach((y,idx)=>{
+        svg.appendChild(svgEl("line",{x1:58,y1:y,x2:690,y2:y,stroke:isSide&&idx===0?"#b9c8c2":"#e1e6e0","stroke-width":isSide&&idx===0?1.4:1,"stroke-dasharray":isSide&&idx===0?"":"4 6"}));
+      });
+      if (isSide) {
+        addLabel(svg,30,156,"TOP",{"text-anchor":"end","font-size":8});
+        addLabel(svg,30,250,"MID",{"text-anchor":"end","font-size":8});
+        addLabel(svg,30,344,"DECK",{"text-anchor":"end","font-size":8});
+        [72,684].forEach(x=>{
+          svg.appendChild(svgEl("path",{d:`M ${x-13} 358 L ${x+13} 358 L ${x} 340 Z`,fill:"#dfe8e3",stroke:"#56706f","stroke-width":1.6,"stroke-linejoin":"round"}));
+          svg.appendChild(svgEl("line",{x1:x-19,y1:361,x2:x+19,y2:361,stroke:"#56706f","stroke-width":2,"stroke-linecap":"round"}));
+        });
+      } else {
+        addLabel(svg,30,156,"FAR",{"text-anchor":"end","font-size":8});
+        addLabel(svg,30,250,"MID",{"text-anchor":"end","font-size":8});
+        addLabel(svg,30,344,"NEAR",{"text-anchor":"end","font-size":8});
+        addLabel(svg,72,131,"SHARED TOP / BOTTOM BRACING",{"font-size":9,"fill":"#8a9896"});
+      }
+    }
+    function drawBoardMember(svg, m, view) {
+      const p1=toBoard(m.a,view), p2=toBoard(m.b,view);
+      const selected=state.selected && state.selected.view===view && state.selected.id===m.id;
+      const g=svgEl("g",{"data-member":m.id,class:"toothpick"});
+      g.appendChild(svgEl("line",{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:selected?"#e87932":"#9a642f","stroke-width":15,"stroke-linecap":"round",opacity:.12,"pointer-events":"stroke"}));
+      g.appendChild(svgEl("line",{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:selected?"#d67b35":"#8c5526","stroke-width":9,"stroke-linecap":"round","pointer-events":"stroke"}));
+      g.appendChild(svgEl("line",{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:selected?"#ffd39e":"#e0a65e","stroke-width":5,"stroke-linecap":"round","pointer-events":"stroke"}));
+      g.appendChild(svgEl("line",{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:"#f9dfb8","stroke-width":1.25,"stroke-linecap":"round","opacity":.8,"pointer-events":"stroke"}));
+      g.addEventListener("pointerdown",(evt)=>startMemberDrag(evt,m,view,svg));
+      g.addEventListener("click",(evt)=>{evt.stopPropagation(); if(state.suppressClick){state.suppressClick=false;return;} if(!state.addMode){state.selected={view,id:m.id};renderBoard();updateToolButtons();}});
+      svg.appendChild(g);
+    }
+    function drawGridNode(svg,p,view) {
+      const q=toBoard(p,view);
+      const isStart=!!(state.firstPoint&&pointKey(state.firstPoint)===pointKey(p));
+      const isAvailable=state.addMode&&(!state.firstPoint||(fitsOnePick(view,state.firstPoint,p)&&pointKey(state.firstPoint)!==pointKey(p)&&!activeList(view).some(m=>edgeKey(m.a,m.b)===edgeKey(state.firstPoint,p))));
+      const g=svgEl("g",{"data-node":pointKey(p),style:`cursor:${state.addMode?(isAvailable?"crosshair":"not-allowed"):"grab"}`});
+      g.appendChild(svgEl("circle",{cx:q.x,cy:q.y,r:12,fill:"transparent"}));
+      g.appendChild(svgEl("circle",{cx:q.x,cy:q.y,r:isAvailable?5.2:4.1,fill:isStart?"#e87932":isAvailable?"#9dd8c1":"#fffefa",stroke:isStart?"#b85020":isAvailable?"#398b72":"#708c8d","stroke-width":isAvailable?2.1:1.8}));
+      g.addEventListener("pointerdown",(evt)=>startNodeDrag(evt,p,view,svg));
+      g.addEventListener("click",(evt)=>{
+        evt.stopPropagation();
+        if(state.suppressClick){state.suppressClick=false;return;}
+        if(state.addMode){onJointClick(p);return;}
+        state.addMode=true;
+        state.firstPoint=[...p];
+        $("designStatus").textContent="Start joint selected. Choose an adjacent highlighted joint.";
+        renderBoard();
+      });
+      svg.appendChild(g);
+    }
+    function renderBoard() {
+      const svg=$("designSvg"); svg.replaceChildren();
+      const view=state.view;
+      drawBoardBackdrop(svg,view);
+      activeList(view).forEach(m=>drawBoardMember(svg,m,view));
+      viewPoints(view).forEach(p=>drawGridNode(svg,p,view));
+      if(state.addMode && state.firstPoint){
+        const p=toBoard(state.firstPoint,view);
+        svg.appendChild(svgEl("circle",{cx:p.x,cy:p.y,r:9,fill:"#e8793230",stroke:"#e87932","stroke-width":2}));
+      }
+      const label = view === "side" ? "SIDE PROFILE · BOTH SIDES" : "TOP / BOTTOM · SHARED BRACING";
+      addLabel(svg,688,405,label,{"text-anchor":"end","font-size":8,"fill":"#899693"});
+      updateSummary(); updateToolButtons();
+    }
+    function onJointClick(p){
+      if(!state.firstPoint){ state.firstPoint=[...p]; $("designStatus").textContent="Start joint selected. Choose the second joint."; renderBoard(); return; }
+      const start=state.firstPoint; state.firstPoint=null;
+      if(pointKey(start)===pointKey(p)){ $("designStatus").textContent="Choose a different second joint."; renderBoard(); return; }
+      if(!fitsOnePick(state.view,start,p)){ $("designStatus").textContent="A toothpick can reach only an adjacent joint: one grid edge or one diagonal."; renderBoard(); return; }
+      const ok=addMember(state.view,start,p);
+      if(!ok) $("designStatus").textContent="There is already a toothpick between those joints.";
+      else $("designStatus").textContent="Toothpick placed. Keep building or switch to Select / move.";
+      state.addMode=false; $("addPickBtn").classList.remove("active"); renderBoard();
+    }
+    function startMemberDrag(evt,m,view,svg){
+      evt.preventDefault(); evt.stopPropagation();
+      if(state.addMode) return;
+      state.selected={view,id:m.id};
+      const pt=eventToSvg(evt,svg);
+      state.dragging={type:"member",view,id:m.id,start:pt,last:pt,a:[...m.a],b:[...m.b],moved:false};
+      try{svg.setPointerCapture(evt.pointerId);}catch(_e){}
+      renderBoard();
+    }
+    function startNodeDrag(evt,p,view,svg){
+      evt.preventDefault(); evt.stopPropagation();
+      if(state.addMode) return;
+      const pt=eventToSvg(evt,svg);
+      state.dragging={type:"node",view,point:[...p],start:pt,last:pt,moved:false};
+      try{evt.currentTarget.setPointerCapture(evt.pointerId);}catch(_e){}
+    }
+    function endBoardDrag(evt,svg){
+      if(!state.dragging) return;
+      const drag=state.dragging, end=eventToSvg(evt,svg); state.dragging=null;
+      if(Math.hypot(end.x-drag.start.x,end.y-drag.start.y)<5){ state.suppressClick=false; return; }
+      state.suppressClick=true;
+      if(drag.type==="member"){
+        const dx=Math.round((end.x-drag.start.x)/102);
+        const dy=Math.round(-(end.y-drag.start.y)/94);
+        const bounds={x:6,y:2};
+        const clamp=(n,max)=>Math.max(0,Math.min(max,n));
+        const m=state.design[drag.view].find(x=>x.id===drag.id);
+        if(m){
+          const a=[clamp(drag.a[0]+dx,bounds.x),clamp(drag.a[1]+dy,bounds.y)];
+          const b=[clamp(drag.b[0]+dx,bounds.x),clamp(drag.b[1]+dy,bounds.y)];
+          if(pointKey(a)===pointKey(b) || state.design[drag.view].some(x=>x.id!==m.id&&edgeKey(x.a,x.b)===edgeKey(a,b))){
+            $("designStatus").textContent="That move would overlap another toothpick. The toothpick stayed in place.";
+          } else {pushUndo();m.a=a;m.b=b;$("designStatus").textContent="Toothpick moved. Its ends snapped to the nearest joints.";}
+        }
+      }else{
+        const moved=boardToGrid(end,drag.view); const old=drag.point;
+        if(pointKey(moved)!==pointKey(old)){
+          const list=state.design[drag.view].map(m=>({id:m.id,a:pointKey(m.a)===pointKey(old)?[...moved]:[...m.a],b:pointKey(m.b)===pointKey(old)?[...moved]:[...m.b]}));
+          if(list.some(m=>!fitsOnePick(drag.view,m.a,m.b))) $("designStatus").textContent="That move would stretch a pick. The joint stayed in place.";
+          else {
+            pushUndo();
+            const seen=new Set(); state.design[drag.view]=list.filter(m=>{const k=edgeKey(m.a,m.b);if(seen.has(k))return false;seen.add(k);return true;});
+            $("designStatus").textContent="Joint moved. Every attached toothpick followed it.";
+          }
+        }
+      }
+      resetTestForDesignChange(); renderBoard();
+      setTimeout(()=>{state.suppressClick=false;},0);
+    }
+    $("designSvg").addEventListener("pointermove",(evt)=>{
+      if(!state.dragging)return;
+      const pt=eventToSvg(evt,$("designSvg")); state.dragging.last=pt;
+      if(Math.hypot(pt.x-state.dragging.start.x,pt.y-state.dragging.start.y)>4)state.dragging.moved=true;
+    });
+    $("designSvg").addEventListener("pointerup",(evt)=>endBoardDrag(evt,$("designSvg")));
+    $("designSvg").addEventListener("pointercancel",(evt)=>endBoardDrag(evt,$("designSvg")));
+    $("designSvg").addEventListener("click",()=>{if(state.addMode&&state.firstPoint){state.firstPoint=null;$("designStatus").textContent="First joint cleared. Choose a start joint.";renderBoard();}});
+
+    const SCORED_VIEWS = new Set(["side","plan"]);
+    const MAX_SCORED_PICKS = 200; // maximum physical picks in the two profiles after shared edges are counted once
+    function scoredMembers(design=state.design){return buildModel(design).members.filter(m=>SCORED_VIEWS.has(m.view));}
+    function countPhysicalPicks(design=state.design){return buildModel(design).members.length;}
+    function countScoredPicks(design=state.design){return scoredMembers(design).length;}
+    function countUniqueJoints(){return buildModel().nodes.length;}
+    function estimateBridgeWeightLb(design=state.design){
+      const totalLengthM=scoredMembers(design).reduce((sum,m)=>sum+m.L,0);
+      return totalLengthM*A*MATERIAL.density*G*0.224809;
+    }
+    function scoreDesign(toothpicks,bridgeWeightLb,weightHeldLb){
+      const loadRatio=Math.max(0,Math.min(1,weightHeldLb/FULL_BUCKET_LOAD_LB));
+      const pickEfficiency=Math.max(0,1-toothpicks/MAX_SCORED_PICKS);
+      const weightEfficiency=Math.max(0,1-bridgeWeightLb/0.10);
+      return Math.round(loadRatio*(70+15*pickEfficiency+15*weightEfficiency));
+    }
+    function currentDesignMetrics(){
+      const toothpicks=countScoredPicks();
+      const bridgeWeightLb=estimateBridgeWeightLb();
+      const weightHeldLb=state.test.weightHeldLb||0;
+      return {toothpicks,bridgeWeightLb,weightHeldLb,score:scoreDesign(toothpicks,bridgeWeightLb,weightHeldLb)};
+    }
+    const ROUND_NAMES=["Original Design","Reiteration 1","Reiteration 2"];
+    function renderIterationProgress(){
+      const host=$("iterationCards");if(!host)return;
+      host.replaceChildren();
+      ROUND_NAMES.forEach((name,i)=>{
+        const card=document.createElement("div");card.className="iteration-card"+(state.savedDesigns[i]?" done":state.iterationIndex===i?" active":"");
+        const title=document.createElement("strong");title.textContent=name;card.appendChild(title);
+        const detail=document.createElement("span");detail.textContent=state.savedDesigns[i]?`Recorded · score ${state.savedDesigns[i].score}`:state.iterationIndex===i?"In progress":"Up next";card.appendChild(detail);
+        host.appendChild(card);
+      });
+      if(state.iterationIndex<3)$("iterationStatus").textContent=`Current round: ${ROUND_NAMES[state.iterationIndex]}. Test it, then record its design and score.`;
+      else $("iterationStatus").textContent="All three designs are recorded. Generate the report and enter the student’s name.";
+    }
+    function updateSummary(){
+      const count=countPhysicalPicks();
+      $("pickCount").textContent=`${count} toothpick${count===1?"":"s"}`;
+      $("summaryPicks").textContent=String(count);
+      $("summaryJoints").textContent=String(countUniqueJoints());
+    }
+    function updateToolButtons(){
+      $("undoBtn").disabled=state.undo.length===0;
+      const exists=!!(state.selected&&state.design[state.selected.view].some(m=>m.id===state.selected.id));
+      $("removeBtn").disabled=!exists;
+      $("selectModeBtn").classList.toggle("active",!state.addMode);
+      $("addPickBtn").classList.toggle("active",state.addMode);
+      $("addPickBtn").setAttribute("aria-pressed",String(state.addMode));
+      $("selectModeBtn").setAttribute("aria-pressed",String(!state.addMode));
+    }
+    function setView(view){
+      state.view=view; state.firstPoint=null; state.selected=null; state.addMode=false;
+      document.querySelectorAll(".view-button").forEach(b=>{const active=b.dataset.view===view;b.classList.toggle("active",active);b.setAttribute("aria-selected",String(active));});
+      $("designViewTitle").textContent=view==="side"?"Side Profile · mirrored to both sides":"Top/Bottom Profile · shared bracing layout";
+      $("designStatus").textContent="Click a joint, then an adjacent highlighted joint to add a toothpick.";
+      renderBoard();
+    }
+    document.querySelectorAll(".view-button").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.view)));
+    $("addPickBtn").addEventListener("click",()=>{
+      state.addMode=!state.addMode; state.firstPoint=null;
+      $("designStatus").textContent=state.addMode?"Choose a start joint, then an adjacent highlighted joint.":"Click a joint, then an adjacent highlighted joint to add a toothpick.";
+      renderBoard();
+    });
+    $("selectModeBtn").addEventListener("click",()=>{state.addMode=false;state.firstPoint=null;$("designStatus").textContent="Drag a toothpick or joint to move it. Click a joint to start a pick.";renderBoard();});
+    $("undoBtn").addEventListener("click",()=>{
+      const previous=state.undo.pop();if(!previous)return;state.design=previous;state.selected=null;resetTestForDesignChange();renderBoard();
+      $("designStatus").textContent="Last design change undone.";
+    });
+    $("removeBtn").addEventListener("click",()=>{
+      if(!state.selected)return;pushUndo();state.design[state.selected.view]=state.design[state.selected.view].filter(m=>m.id!==state.selected.id);state.selected=null;resetTestForDesignChange();renderBoard();$("designStatus").textContent="Selected toothpick removed.";
+    });
+    $("clearViewBtn").addEventListener("click",()=>{
+      if(!activeList().length)return;pushUndo();state.design[state.view]=[];state.selected=null;state.firstPoint=null;resetTestForDesignChange();renderBoard();$("designStatus").textContent="This view is clear. Add toothpicks to rebuild it.";
+    });
+    $("restartChallengeBtn").addEventListener("click",()=>{
+      if(!window.confirm("Start over and clear all three recorded designs?"))return;
+      state.design={side:[],plan:[]};state.savedDesigns=[];state.iterationIndex=0;state.studentName="";state.reportHtml="";state.undo=[];state.selected=null;state.addMode=false;state.firstPoint=null;state.view="side";
+      state.test={water:0,started:false,failed:false,capacityReached:false,result:null,failure:null,failureReason:"",weightHeldLb:0};
+      document.querySelectorAll(".view-button").forEach(b=>{const active=b.dataset.view==="side";b.classList.toggle("active",active);b.setAttribute("aria-selected",String(active));});
+      $("nameModal").classList.add("hidden");$("reportFrame").srcdoc="";renderIterationProgress();renderBoard();showScreen("design");
+    });
+    $("rotateHint").addEventListener("click",()=>{
+      const current=$("designStatus").textContent;
+      $("designStatus").textContent=current.startsWith("Drag a toothpick")?"Select Add toothpick, then click two joints. Drag a pick to move it.":"Drag a toothpick to move it, or drag a joint to move connected picks.";
+    });
+    document.addEventListener("keydown",evt=>{
+      if((evt.key==="Delete"||evt.key==="Backspace")&&state.selected&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName))$("removeBtn").click();
+      if(evt.key==="Escape"&&state.addMode){state.addMode=false;state.firstPoint=null;$("designStatus").textContent="Placement canceled.";renderBoard();}
+    });
+
+    function nodeKey(i,j,s){return `${i},${j},${s}`;}
+    function buildModel(design=state.design){
+      const nodes=new Map(), members=[],physicalEdges=new Set();
+      const getNode=(i,j,s)=>{
+        const key=nodeKey(i,j,s);
+        if(!nodes.has(key)) nodes.set(key,{key,i,j,s,x:i*(state.dimensions.span/6)*IN_TO_M,y:j*(state.dimensions.height/2)*IN_TO_M,z:s*(state.dimensions.width/2)*IN_TO_M});
+        return nodes.get(key);
+      };
+      const add=(id,a,b,baseId,view)=>{
+        const n1=getNode(...a),n2=getNode(...b);const dx=n2.x-n1.x,dy=n2.y-n1.y,dz=n2.z-n1.z;const L=Math.hypot(dx,dy,dz);
+        const key=[n1.key,n2.key].sort().join("|");
+        if(L>1e-8&&!physicalEdges.has(key)){
+          physicalEdges.add(key);
+          members.push({id,baseId,view,n1,n2,L,u:[dx/L,dy/L,dz/L],k:MATERIAL.E*A/L,tensionCap:Math.min(A*MATERIAL.tensileStrength,MATERIAL.glueLimit),compressionCap:Math.PI*Math.PI*MATERIAL.E*I/(L*L)});
+        }
+      };
+      for(const m of design.side){for(const s of [0,2])add(m.id+"-side"+s,[m.a[0],m.a[1],s],[m.b[0],m.b[1],s],m.id,"side");}
+      for(const m of design.plan)for(const level of [0,2])add(m.id+"-plan"+(level===2?"Top":"Bottom"),[m.a[0],level,m.a[1]],[m.b[0],level,m.b[1]],m.id,"plan");
+      const supports=[];
+      for(const s of [0,2]){getNode(0,0,s);getNode(6,0,s);supports.push({node:getNode(0,0,s),kind:s===0?"leftPin":"leftGuide"},{node:getNode(6,0,s),kind:"roller"});}
+      const loads=[getNode(3,2,0),getNode(3,2,2)];
+      return {nodes:[...nodes.values()],members,supports,loads};
+    }
+    function solveLinearSystem(K,F){
+      const n=F.length;const M=K.map((row,i)=>[...row,F[i]]);
+      let maxDiag=0;for(let i=0;i<n;i++)maxDiag=Math.max(maxDiag,Math.abs(M[i][i]));
+      const tol=Math.max(1e-12,maxDiag*1e-11);
+      for(let col=0;col<n;col++){
+        let pivot=col;for(let r=col+1;r<n;r++)if(Math.abs(M[r][col])>Math.abs(M[pivot][col]))pivot=r;
+        if(Math.abs(M[pivot][col])<tol)throw new Error("unstable");
+        if(pivot!==col)[M[pivot],M[col]]=[M[col],M[pivot]];
+        const pv=M[col][col];
+        for(let r=col+1;r<n;r++){
+          const f=M[r][col]/pv;if(Math.abs(f)<1e-20)continue;
+          M[r][col]=0;for(let c=col+1;c<=n;c++)M[r][c]-=f*M[col][c];
+        }
+      }
+      const x=new Array(n).fill(0);
+      for(let i=n-1;i>=0;i--){let v=M[i][n];for(let c=i+1;c<n;c++)v-=M[i][c]*x[c];x[i]=v/M[i][i];}
+      return x;
+    }
+    function solveBridge(waterGal){
+      const model=buildModel(), nDof=model.nodes.length*3, idx=new Map(model.nodes.map((n,i)=>[n.key,i]));
+      if(model.members.length<3)throw new Error("unstable");
+      const reducedIndex=new Map();
+      for(let i=0;i<model.nodes.length;i++)for(let c=0;c<2;c++)reducedIndex.set(i*3+c,reducedIndex.size);
+      const lateralIndex=new Map();
+      for(const node of model.nodes)if(!lateralIndex.has(node.i))lateralIndex.set(node.i,reducedIndex.size+lateralIndex.size);
+      const nReduced=reducedIndex.size+lateralIndex.size;
+      const fullMap=Array.from({length:nDof},()=>[]);
+      for(let i=0;i<model.nodes.length;i++){
+        const node=model.nodes[i];
+        fullMap[i*3+2]=[[lateralIndex.get(node.i),1]];
+        for(let c=0;c<2;c++)fullMap[i*3+c]=[[reducedIndex.get(i*3+c),1]];
+      }
+      const K=Array.from({length:nDof},()=>new Float64Array(nDof));
+      const F=new Float64Array(nDof);
+      const dof=(node,c)=>idx.get(node.key)*3+c;
+      for(const m of model.members){
+        const u=m.u,L=m.L;
+        const bendK=12*MATERIAL.E*I/(L*L*L);
+        for(let a=0;a<3;a++)for(let b=0;b<3;b++){
+          const axial=m.k*u[a]*u[b];
+          const bending=bendK*((a===b?1:0)-u[a]*u[b]);
+          const v=axial+bending, i1=dof(m.n1,a),j1=dof(m.n1,b),i2=dof(m.n2,a),j2=dof(m.n2,b);
+          K[i1][j1]+=v;K[i1][j2]-=v;K[i2][j1]-=v;K[i2][j2]+=v;
+        }
+        const mass=A*L*MATERIAL.density;F[dof(m.n1,1)]-=mass*G/2;F[dof(m.n2,1)]-=mass*G/2;
+      }
+      const waterKg=waterGal*3.785411784*0.997;
+      const bucketKg=BUCKET_EMPTY_LB*0.45359237;
+      const eachLoad=(waterKg+bucketKg)*G/model.loads.length;
+      for(const node of model.loads)F[dof(node,1)]-=eachLoad;
+      const KReduced=Array.from({length:nReduced},()=>new Float64Array(nReduced));
+      const FReduced=new Float64Array(nReduced);
+      for(let i=0;i<nDof;i++){
+        for(const [ri,wi] of fullMap[i])FReduced[ri]+=wi*F[i];
+        for(let j=0;j<nDof;j++){
+          const kij=K[i][j];if(kij===0)continue;
+          for(const [ri,wi] of fullMap[i])for(const [rj,wj] of fullMap[j])KReduced[ri][rj]+=wi*kij*wj;
+        }
+      }
+      const fixed=new Set();
+      const leftFront=idx.get(nodeKey(0,0,0)),leftBack=idx.get(nodeKey(0,0,2)),rightGuide=idx.get(nodeKey(6,0,2));
+      if(leftFront===undefined||leftBack===undefined||rightGuide===undefined)throw new Error("unstable");
+      const fix=(nodeIndex,c)=>fixed.add(fullMap[nodeIndex*3+c][0][0]);
+      fix(leftFront,0);fix(leftFront,1);fix(leftFront,2);
+      fix(leftBack,1);fix(rightGuide,2);
+      for(const s of [0,2]){const right=idx.get(nodeKey(6,0,s));if(right!==undefined)fix(right,1);}
+      const free=[];for(let i=0;i<nReduced;i++)if(!fixed.has(i))free.push(i);
+      const Kr=free.map(i=>Float64Array.from(free,j=>KReduced[i][j]));const Fr=Float64Array.from(free,i=>FReduced[i]);
+      const ur=solveLinearSystem(Kr,Fr), disp=new Map();
+      const reduced=new Float64Array(nReduced);free.forEach((d,i)=>reduced[d]=ur[i]);
+      const full=new Float64Array(nDof);
+      for(let d=0;d<nDof;d++)for(const [r,w] of fullMap[d])full[d]+=w*reduced[r];
+      model.nodes.forEach(node=>disp.set(node.key,[full[dof(node,0)],full[dof(node,1)],full[dof(node,2)]]));
+      const forces=new Map();let maxUtil=0,critical=null;
+      for(const m of model.members){
+        const d1=disp.get(m.n1.key),d2=disp.get(m.n2.key);let extension=0;
+        for(let c=0;c<3;c++)extension+=m.u[c]*(d2[c]-d1[c]);
+        const force=m.k*extension;
+        let transverseSquared=0;
+        for(let c=0;c<3;c++){const transverse=(d2[c]-d1[c])-m.u[c]*extension;transverseSquared+=transverse*transverse;}
+        const bendingMoment=6*MATERIAL.E*I*Math.sqrt(transverseSquared)/(m.L*m.L);
+        const bendingCap=MATERIAL.bendingStrength*I/(MATERIAL.diameter/2);
+        const axialUtilization=force>=0?force/m.tensionCap:Math.abs(force)/m.compressionCap;
+        const bendingUtilization=bendingMoment/bendingCap;
+        const mode=bendingUtilization>axialUtilization?"bending":force<0?"buckling":"tension";
+        const utilization=Math.max(axialUtilization,bendingUtilization);
+        const record={force,utilization,mode,bendingMoment,bendingCap,tensionCap:m.tensionCap,compressionCap:m.compressionCap,L:m.L,baseId:m.baseId};
+        forces.set(m.id,record);
+        if(utilization>maxUtil){maxUtil=utilization;critical=record;critical.id=m.id;}
+      }
+      const centerDisp=(disp.get(nodeKey(3,2,0))[1]+disp.get(nodeKey(3,2,2))[1])/2;
+      return {model,disp,forces,maxUtil,critical,centerDeflection:centerDisp};
+    }
+    function findFailure(previous,next){
+      let best=null;
+      for(const [id,end] of next.forces){
+        const start=previous.forces.get(id);if(!start)continue;
+        const u0=start.utilization,u1=end.utilization;
+        if(u1<1||u1<=u0)continue;
+        const alpha=(1-u0)/(u1-u0);
+        if(alpha>=0&&alpha<=1&&(!best||alpha<best.alpha)){
+          const limit=end.mode==="bending"?end.bendingCap:end.mode==="buckling"?end.compressionCap:end.tensionCap;
+          best={id,baseId:end.baseId,alpha,mode:end.mode,limit,force:end.force};
+        }
+      }
+      return best;
+    }
+    function formatLb(n){return `${(n*0.224809).toFixed(1)} lb`;}
+    function buildFailureLabel(failure,result){
+      const label=`member ${failure.id.split("-")[1]||""}`;
+      if(failure.mode==="bending")return `${label} reached its estimated bending limit.`;
+      const direction=failure.mode==="buckling"?"buckled in compression":"reached its tension / glue limit";
+      return `${label} ${direction} at about ${formatLb(Math.abs(failure.force))} of member force.`;
+    }
+    function pointForTest(node,disp,exaggeration=24500){
+      const u=disp?disp.get(node.key):[0,0,0];
+      return {x:103+node.i*78+node.s*29+u[0]*exaggeration+u[2]*1300,y:237-node.j*58-node.s*25-u[1]*exaggeration-u[2]*900};
+    }
+    function renderTest(){
+      const svg=$("testSvg");svg.replaceChildren();
+      const bg=svgEl("defs");
+      const clip=svgEl("clipPath",{id:"pailClip"});clip.appendChild(svgEl("path",{d:"M 315 295 L 405 295 L 395 388 Q 360 397 325 388 Z"}));bg.appendChild(clip);
+      const grad=svgEl("linearGradient",{id:"bucketGrad",x1:"0",x2:"1",y1:"0",y2:"0"});grad.appendChild(svgEl("stop",{offset:"0%","stop-color":"#ed8a3d"}));grad.appendChild(svgEl("stop",{offset:"55%","stop-color":"#f58d3d"}));grad.appendChild(svgEl("stop",{offset:"100%","stop-color":"#d96a28"}));bg.appendChild(grad);svg.appendChild(bg);
+      for(let x=35;x<760;x+=32)for(let y=18;y<450;y+=32)svg.appendChild(svgEl("circle",{cx:x,cy:y,r:1.1,fill:"#dbe3dc",opacity:.65}));
+      svg.appendChild(svgEl("line",{x1:55,y1:250,x2:706,y2:250,stroke:"#d0d9d3","stroke-width":1,"stroke-dasharray":"5 7"}));
+      const water=Math.max(0,Math.min(1,state.test.water/BUCKET_GALLONS));
+      const waterY=386-water*78;
+      const bucket=svgEl("g");
+      bucket.appendChild(svgEl("path",{d:"M 315 295 L 405 295 L 395 388 Q 360 397 325 388 Z",fill:"url(#bucketGrad)",stroke:"#a94c20","stroke-width":2.5,"stroke-linejoin":"round"}));
+      bucket.appendChild(svgEl("rect",{x:315,y:waterY,width:90,height:392-waterY,fill:"#4fa8c1","clip-path":"url(#pailClip)",opacity:.92}));
+      bucket.appendChild(svgEl("path",{d:"M 315 295 L 405 295 M 321 303 L 399 303",stroke:"#8f4424","stroke-width":2,"stroke-linecap":"round"}));
+      bucket.appendChild(svgEl("rect",{x:341,y:327,width:39,height:20,rx:3,fill:"#fff1dd",opacity:.96}));
+      bucket.appendChild(svgEl("text",{x:360,y:340,"text-anchor":"middle",fill:"#a84e22","font-size":8,"font-weight":900,"letter-spacing":".08em"},"7 GAL"));
+      bucket.appendChild(svgEl("path",{d:"M 320 295 L 316 284 M 400 295 L 404 284",stroke:"#252b2d","stroke-width":3.2,"stroke-linecap":"round"}));
+      svg.appendChild(bucket);
+      const result=state.test.result;const disp=result?.disp||null;const model=buildModel();
+      const centerA=pointForTest(model.nodes.find(n=>n.key===nodeKey(3,2,0))||{i:3,j:2,s:0,key:nodeKey(3,2,0)},disp);
+      const centerB=pointForTest(model.nodes.find(n=>n.key===nodeKey(3,2,2))||{i:3,j:2,s:2,key:nodeKey(3,2,2)},disp);
+      const centerX=(centerA.x+centerB.x)/2, topY=Math.min(centerA.y,centerB.y);
+      svg.appendChild(svgEl("path",{d:`M 315 295 C 304 ${topY-26}, ${centerX-38} ${topY-22}, ${centerX} ${topY-5} C ${centerX+38} ${topY-22}, 416 ${topY-26}, 405 295`,fill:"none",stroke:"#343b3d","stroke-width":4,"stroke-linecap":"round"}));
+      svg.appendChild(svgEl("path",{d:`M ${centerX-17} ${topY-3} Q ${centerX} ${topY-13} ${centerX+17} ${topY-3}`,fill:"none",stroke:"#f2a052","stroke-width":3,"stroke-linecap":"round"}));
+      const modelMembers=model.members.map(m=>({...m,side:m.view==="side"?m.n1.s:null}));
+      // Draw the far truss and deck bracing before the near truss so the bridge reads in depth.
+      modelMembers.sort((a,b)=>{
+        const depth=(m)=>m.view==="side"?m.side:0.5;
+        return depth(a)-depth(b);
+      });
+      modelMembers.forEach(item=>{
+        const p1=pointForTest(item.n1,disp),p2=pointForTest(item.n2,disp);const force=result?.forces.get(item.id);const util=force?.utilization||0;
+        const unstable=state.test.failed&&!state.test.failure;
+        const color=unstable||state.test.failure&&state.test.failure.baseId===item.baseId?"#c94e40":util>.8?"#d5763a":"#8c5526";
+        const pick=svgEl("g");
+        if(state.test.failure&&state.test.failure.baseId===item.baseId){
+          const mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2,dx=(p2.x-p1.x)/Math.hypot(p2.x-p1.x,p2.y-p1.y),dy=(p2.y-p1.y)/Math.hypot(p2.x-p1.x,p2.y-p1.y);
+          pick.appendChild(svgEl("line",{x1:p1.x,y1:p1.y,x2:mx-dx*7,y2:my-dy*7,stroke:color,"stroke-width":5,"stroke-linecap":"round"}));
+          pick.appendChild(svgEl("line",{x1:mx+dx*7,y1:my+dy*7,x2:p2.x,y2:p2.y,stroke:color,"stroke-width":5,"stroke-linecap":"round"}));
+          pick.appendChild(svgEl("path",{d:`M ${mx-dx*7} ${my-dy*7} l ${-dy*5} ${dx*5} l ${dy*10} ${-dx*10} l ${-dy*5} ${dx*5}`,stroke:"#c94e40","stroke-width":2,fill:"none"}));
+        }else{
+          pick.appendChild(svgEl("line",{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:"#56391f","stroke-width":8,"stroke-linecap":"round",opacity:.2}));
+          pick.appendChild(svgEl("line",{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:color,"stroke-width":5,"stroke-linecap":"round",...(unstable?{"stroke-dasharray":"5 4"}:{})}));
+          pick.appendChild(svgEl("line",{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:"#f3c884","stroke-width":1.1,"stroke-linecap":"round",opacity:.75}));
+        }
+        svg.appendChild(pick);
+      });
+      if(state.test.failed&&!state.test.failure){
+        svg.appendChild(svgEl("rect",{x:510,y:24,width:205,height:31,rx:8,fill:"#fff1ed",stroke:"#e4a69c"}));
+        svg.appendChild(svgEl("text",{x:612.5,y:44,"text-anchor":"middle",fill:"#a34438","font-size":10,"font-weight":900,"letter-spacing":".1em"},"UNSTABLE · TEST STOPPED"));
+      }
+      [[103,237],[571,237]].forEach(([x,y])=>{
+        svg.appendChild(svgEl("path",{d:`M ${x-15} ${y+7} L ${x+15} ${y+7} L ${x} ${y-12} Z`,fill:"#e3ebe5",stroke:"#54716f","stroke-width":1.7,"stroke-linejoin":"round"}));
+        svg.appendChild(svgEl("line",{x1:x-21,y1:y+10,x2:x+21,y2:y+10,stroke:"#54716f","stroke-width":2,"stroke-linecap":"round"}));
+      });
+      svg.appendChild(svgEl("text",{x:104,y:270,fill:"#74867f","font-size":9,"font-weight":800,"letter-spacing":".08em"},"PIN"));
+      svg.appendChild(svgEl("text",{x:570,y:270,fill:"#74867f","font-size":9,"font-weight":800,"letter-spacing":".08em","text-anchor":"end"},"ROLLER"));
+      updateTestPanel();
+    }
+    function updateTestPanel(){
+      const t=state.test;const lb=BUCKET_EMPTY_LB+t.water*8.34;
+      const metrics=currentDesignMetrics();
+      $("waterValue").textContent=t.water.toFixed(2);$("loadValue").textContent=`${lb.toFixed(1)} lb`;
+      $("gaugeFill").style.width=`${Math.min(100,t.water/BUCKET_GALLONS*100)}%`;
+      $("gaugeFill").parentElement.setAttribute("aria-valuenow",t.water.toFixed(2));
+      $("addWaterBtn").disabled=t.failed||t.capacityReached;
+      $("testPickCount").textContent=String(metrics.toothpicks);
+      $("bridgeWeightValue").textContent=metrics.bridgeWeightLb.toFixed(3)+" lb";
+      $("weightHeldValue").textContent=t.weightHeldLb.toFixed(1)+" lb";
+      $("scoreValue").textContent=String(metrics.score);
+      const saveButton=$("saveIterationBtn");
+      if(state.iterationIndex<3){
+        saveButton.hidden=false;
+        saveButton.disabled=!(t.failed||t.capacityReached);
+        saveButton.textContent=!(t.failed||t.capacityReached)?"Test the design to record it":state.iterationIndex===2?"Record Reiteration 2 · Generate report":state.iterationIndex===0?"Record Design and Continue":"Record Reiteration 1 and Continue";
+        $("saveHelp").textContent=!(t.failed||t.capacityReached)?"Finish the test by reaching the pail capacity or the bridge’s first predicted failure.":"This design, its test result, and its score will be saved for the report.";
+      }else{
+        saveButton.hidden=false;saveButton.disabled=false;saveButton.textContent="Enter name and generate report";
+        $("saveHelp").textContent="All three designs are saved. Enter the student’s name to create the report.";
+      }
+      const box=$("testStatus");box.classList.remove("failed","neutral");
+      if(t.failed){box.classList.add("failed");box.textContent=t.failure?`Bridge failed at ${t.water.toFixed(2)} gal (${lb.toFixed(1)} lb suspended load). ${buildFailureLabel(t.failure,t.result)}`:`${t.failureReason||`Bridge is unstable at ${t.water.toFixed(2)} gal.`} Edit the design and reset the test to try again.`;}
+      else if(t.capacityReached){box.classList.add("neutral");box.textContent="The 7 gallon pail is full and the model still carries the load. Try a more challenging span or revise the design.";}
+      else if(t.started){box.textContent=`Load increased to ${t.water.toFixed(2)} gal. Add another ${WATER_STEP.toFixed(1)} gal to continue the test.`;}
+      else{box.classList.add("neutral");box.textContent=`Ready. Add water to increase the load in ${WATER_STEP.toFixed(1)} gallon steps.`;}
+    }
+    function resetTest(){state.test={water:0,started:false,failed:false,capacityReached:false,result:null,failure:null,failureReason:"",weightHeldLb:0};renderTest();}
+    function addWater(){
+      const t=state.test;if(t.failed||t.capacityReached)return;
+      const oldWater=t.water;
+      let oldResult=t.result;
+      try{
+        if(!oldResult)oldResult=solveBridge(oldWater);
+        if(oldResult.maxUtil>1){
+          t.result=oldResult;t.failed=true;t.started=true;
+          const bad=[...oldResult.forces].reduce((best,item)=>!best||item[1].utilization>best[1].utilization?item:best,null);
+          if(bad){const [id,f]=bad;const limit=f.mode==="bending"?f.bendingCap:f.mode==="buckling"?f.compressionCap:f.tensionCap;t.failure={id,baseId:f.baseId,mode:f.mode,force:f.force,limit};t.weightHeldLb=BUCKET_EMPTY_LB/oldResult.maxUtil;}
+          renderTest();return;
+        }
+      }catch(_err){t.failed=true;t.started=true;t.failure=null;t.water=oldWater;t.weightHeldLb=0;t.failureReason="Test stopped before water was added.";renderTest();return;}
+      const nextWater=Math.min(BUCKET_GALLONS,Number((oldWater+WATER_STEP).toFixed(10)));
+      let nextResult;
+      try{nextResult=solveBridge(nextWater);}catch(_err){t.water=nextWater;t.started=true;t.failed=true;t.failure=null;t.result=oldResult;t.weightHeldLb=BUCKET_EMPTY_LB+oldWater*8.34;t.failureReason="The bridge lost stability when the water reached "+nextWater.toFixed(2)+" gal ("+(BUCKET_EMPTY_LB+nextWater*8.34).toFixed(1)+" lb suspended load).";renderTest();return;}
+      const crossing=findFailure(oldResult,nextResult);
+      t.started=true;
+      if(crossing){
+        t.water=oldWater+crossing.alpha*(nextWater-oldWater);
+        t.failure=crossing;t.failed=true;t.weightHeldLb=BUCKET_EMPTY_LB+t.water*8.34;
+        try{t.result=solveBridge(t.water);}catch(_err){t.result=nextResult;}
+      }else{
+        t.water=nextWater;t.result=nextResult;t.weightHeldLb=BUCKET_EMPTY_LB+t.water*8.34;
+        if(t.water>=BUCKET_GALLONS)t.capacityReached=true;
+      }
+      renderTest();
+      $("liveRegion").textContent=t.failed?$("testStatus").textContent:`Water added: ${t.water.toFixed(2)} gallons.`;
+    }
+    function escapeHtml(value){
+      return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+    }
+    function reportViewSvg(design,view){
+      const side=view==="side";
+      const lines=side?design.side:design.plan;
+      const px=p=>42+p[0]*55;
+      const py=p=>side?148-p[1]*48:52+p[1]*48;
+      const parts=['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 190" role="img">','<rect width="430" height="190" rx="8" fill="#f7f8f4"/>'];
+      for(let i=0;i<7;i++)parts.push('<line x1="'+px([i,0])+'" y1="28" x2="'+px([i,0])+'" y2="166" stroke="#e1e6df" stroke-dasharray="3 5"/>');
+      const rows=[0,1,2];
+      rows.forEach(j=>parts.push('<line x1="30" y1="'+py([0,j])+'" x2="378" y2="'+py([0,j])+'" stroke="#e1e6df" stroke-dasharray="3 5"/>'));
+      lines.forEach(m=>parts.push('<line x1="'+px(m.a)+'" y1="'+py(m.a)+'" x2="'+px(m.b)+'" y2="'+py(m.b)+'" stroke="#a76a34" stroke-width="7" stroke-linecap="round"/>'));
+      for(let i=0;i<7;i++)rows.forEach(j=>parts.push('<circle cx="'+px([i,j])+'" cy="'+py([i,j])+'" r="3.5" fill="#fffefa" stroke="#638381" stroke-width="1.4"/>'));
+      parts.push('<text x="390" y="180" text-anchor="end" font-family="Arial,sans-serif" font-size="9" fill="#78878a">'+(side?"SIDE PROFILE":"TOP / BOTTOM SHARED PROFILE")+'</text></svg>');
+      return parts.join("");
+    }
+    function buildReportHtml(name,records){
+      const cards=records.map(record=>{
+        const outcome=escapeHtml(record.outcome);
+        return '<article class="round"><header><div><span class="kicker">'+escapeHtml(record.label)+'</span><h2>Score: '+record.score+'</h2></div><span class="load">Held '+record.weightHeldLb.toFixed(1)+' lb</span></header>'+
+          '<div class="figures"><figure><figcaption>Side Profile</figcaption>'+reportViewSvg(record.design,"side")+'</figure><figure><figcaption>Top/Bottom Profile</figcaption>'+reportViewSvg(record.design,"plan")+'</figure></div>'+
+          '<table><tbody><tr><th>Scored toothpicks (side + top/bottom)</th><td>'+record.toothpicks+'</td><th>Scored bridge weight</th><td>'+record.bridgeWeightLb.toFixed(3)+' lb</td></tr>'+
+          '<tr><th>Weight held</th><td>'+record.weightHeldLb.toFixed(1)+' lb</td><th>Test result</th><td>'+outcome+'</td></tr>'+
+          '<tr><th>Water added</th><td>'+record.waterGallons.toFixed(2)+' gal</td></tr></tbody></table></article>';
+      }).join("");
+      const date=new Date().toLocaleDateString();
+      return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Toothpick Bridge Iteration Report</title><style>'+
+        'body{margin:0;background:#f3f2ec;color:#192a33;font:14px Arial,sans-serif}main{max-width:1000px;margin:0 auto;padding:30px}.head{display:flex;justify-content:space-between;gap:20px;align-items:end;border-bottom:3px solid #e87932;padding-bottom:16px}.kicker{color:#b75a28;text-transform:uppercase;letter-spacing:.13em;font-size:11px;font-weight:700}.head h1{font-size:30px;margin:5px 0}.meta{line-height:1.8}.score-note{padding:13px 15px;border-radius:9px;background:#eaf2ee;color:#465a61;line-height:1.55;margin:18px 0}.round{background:#fff;border:1px solid #dfe3dd;border-radius:12px;padding:18px;margin:14px 0;break-inside:avoid}.round header{display:flex;align-items:center;justify-content:space-between;gap:15px}.round h2{font-size:21px;margin:4px 0}.load{font-size:15px;font-weight:700;color:#375b54}.figures{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}.figures figure{margin:0}.figures figcaption{font-size:11px;font-weight:700;margin:0 0 5px;color:#607178}svg{width:100%;height:auto;border:1px solid #e1e6df;border-radius:8px}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}th,td{padding:8px;border-top:1px solid #e6e8e3;text-align:left}th{color:#607178}td{font-weight:700}.foot{color:#68787d;font-size:11px;line-height:1.5;margin-top:18px}@media(max-width:650px){main{padding:16px}.head{align-items:flex-start;flex-direction:column}.figures{grid-template-columns:1fr}table{font-size:10px}}@media print{body{background:#fff}.round{box-shadow:none}main{max-width:none;padding:12mm}.score-note{print-color-adjust:exact}}'+
+        '</style></head><body><main><header class="head"><div><div class="kicker">Conceptual Physics</div><h1>Toothpick Bridge Iteration Report</h1></div><div class="meta"><strong>Student:</strong> '+escapeHtml(name)+'<br><strong>Date:</strong> '+escapeHtml(date)+'</div></header>'+
+        '<div class="score-note"><strong>How the score is calculated:</strong> score = round(load ratio × [70 + 15 × pick efficiency + 15 × weight efficiency]). Load ratio is weight held ÷ '+FULL_BUCKET_LOAD_LB.toFixed(1)+' lb, capped at 1. Pick efficiency is max(0, 1 − scored toothpicks ÷ '+MAX_SCORED_PICKS+'). Weight efficiency is max(0, 1 − scored bridge weight ÷ 0.10 lb). Toothpick count and estimated weight use only the Side Profile and Top/Bottom Profile. The result is a number from 0–100. Hypothetical bridge weight assumes 2 mm bamboo-like toothpicks; glue is not included.</div>'+
+        cards+'<p class="foot">The load test is a classroom estimate using a 3D structural model with toothpick bending and axial stiffness. Real toothpicks and glued joints vary, so compare the model with a physical bridge test.</p></main></body></html>';
+    }
+    function openNameModal(){
+      $("studentNameInput").value=state.studentName;
+      $("nameModal").classList.remove("hidden");
+      setTimeout(()=>$("studentNameInput").focus(),0);
+    }
+    function showReportScreen(){
+      $("designScreen").classList.add("hidden");$("testScreen").classList.add("hidden");$("reportScreen").classList.remove("hidden");
+      $("designTab").classList.remove("active");$("testTab").classList.remove("active");
+      $("designTab").setAttribute("aria-selected","false");$("testTab").setAttribute("aria-selected","false");
+      $("introEyebrow").textContent="Original design · two reiterations · final report";
+      $("introTitle").textContent="Your bridge iterations are ready to turn in.";
+      $("introDescription").textContent="Save the report as a PDF or JPEG for Google Classroom.";
+      $("stepChip").textContent="REPORT READY · 3 DESIGNS RECORDED";
+    }
+    function reportFilename(extension){
+      const safe=state.studentName.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"student";
+      return "toothpick-bridge-report-"+safe+"."+extension;
+    }
+    function saveReportAsPdf(){
+      if(!state.reportHtml)return;
+      const printWindow=window.open("","_blank");
+      if(!printWindow){window.alert("Allow pop-ups for this page to save the report as a PDF.");return;}
+      printWindow.document.open();printWindow.document.write(state.reportHtml);printWindow.document.close();
+      setTimeout(()=>{printWindow.focus();printWindow.print();},500);
+    }
+    function saveReportAsJpeg(){
+      if(!state.reportHtml)return;
+      const frame=document.createElement("iframe");
+      frame.setAttribute("aria-hidden","true");
+      frame.style.cssText="position:fixed;left:-12000px;top:0;width:1100px;height:900px;border:0;visibility:hidden";
+      frame.onload=()=>renderReportJpeg(frame);
+      frame.srcdoc=state.reportHtml;
+      document.body.appendChild(frame);
+    }
+    function renderReportJpeg(frame){
+      const reportDoc=frame.contentDocument;
+      const main=reportDoc?.querySelector("main");
+      const style=reportDoc?.querySelector("style")?.textContent||"";
+      if(!main){frame.remove();window.alert("The report could not be prepared as a JPEG. Save it as a PDF instead.");return;}
+      const width=Math.max(1060,Math.ceil(reportDoc.documentElement.clientWidth));
+      const height=Math.max(1,Math.ceil(reportDoc.documentElement.scrollHeight),Math.ceil(main.getBoundingClientRect().height));
+      const mainMarkup=new XMLSerializer().serializeToString(main.cloneNode(true));
+      const safeStyle=style.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      frame.remove();
+      const xhtml='<div xmlns="http://www.w3.org/1999/xhtml" style="width:'+width+'px;height:'+height+'px;background:#f3f2ec;color:#192a33;font:14px Arial,sans-serif"><style>'+safeStyle+'</style>'+mainMarkup+'</div>';
+      const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+(width*2)+'" height="'+(height*2)+'" viewBox="0 0 '+width+' '+height+'"><foreignObject x="0" y="0" width="'+width+'" height="'+height+'">'+xhtml+'</foreignObject></svg>';
+      const svgUrl=URL.createObjectURL(new Blob([svg],{type:"image/svg+xml;charset=utf-8"}));
+      const image=new Image();
+      image.onload=()=>{
+        const scale=2,canvas=document.createElement("canvas");canvas.width=width*scale;canvas.height=height*scale;
+        const context=canvas.getContext("2d");context.fillStyle="#f3f2ec";context.fillRect(0,0,canvas.width,canvas.height);context.drawImage(image,0,0,canvas.width,canvas.height);
+        canvas.toBlob(blob=>{
+          URL.revokeObjectURL(svgUrl);
+          if(!blob){window.alert("This browser could not create the JPEG. Save the report as a PDF instead.");return;}
+          const jpegUrl=URL.createObjectURL(blob),link=document.createElement("a");link.href=jpegUrl;link.download=reportFilename("jpg");document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(jpegUrl),1500);
+        },"image/jpeg",.95);
+      };
+      image.onerror=()=>{URL.revokeObjectURL(svgUrl);window.alert("This browser could not render the report as a JPEG. Save the report as a PDF instead.");};
+      image.src=svgUrl;
+    }
+    function generateReport(){
+      const name=$("studentNameInput").value.trim();
+      if(!name){$("studentNameInput").focus();return;}
+      state.studentName=name;
+      state.reportHtml=buildReportHtml(name,state.savedDesigns);
+      $("reportFrame").srcdoc=state.reportHtml;
+      $("nameModal").classList.add("hidden");
+      showReportScreen();
+    }
+    function saveCurrentIteration(){
+      if(state.iterationIndex>=3){openNameModal();return;}
+      if(!state.test.failed&&!state.test.capacityReached)return;
+      const metrics=currentDesignMetrics();
+      const outcome=state.test.failure
+        ?(state.test.failure.mode==="buckling"?"First predicted failure: compression buckling":"First predicted failure: tension / joint limit")
+        :state.test.failureReason|| (state.test.capacityReached?"Held the full 7 gallon pail":"Unstable under the empty bucket");
+      state.savedDesigns.push({
+        label:ROUND_NAMES[state.iterationIndex],design:cloneDesign(),dimensions:{...state.dimensions},
+        toothpicks:metrics.toothpicks,bridgeWeightLb:metrics.bridgeWeightLb,weightHeldLb:metrics.weightHeldLb,
+        score:metrics.score,waterGallons:state.test.water,outcome
+      });
+      state.iterationIndex=state.savedDesigns.length;
+      renderIterationProgress();
+      if(state.iterationIndex<3){
+        state.design=JSON.parse(JSON.stringify(state.savedDesigns[state.savedDesigns.length-1].design));state.undo=[];state.selected=null;state.firstPoint=null;state.addMode=false;state.view="side";
+        state.test={water:0,started:false,failed:false,capacityReached:false,result:null,failure:null,failureReason:"",weightHeldLb:0};
+        document.querySelectorAll(".view-button").forEach(b=>{const active=b.dataset.view==="side";b.classList.toggle("active",active);b.setAttribute("aria-selected",String(active));});
+        renderBoard();renderTest();showScreen("design");
+        $("designStatus").textContent=ROUND_NAMES[state.iterationIndex]+" started from the previous design. Edit and test this version.";
+      }else{
+        renderTest();openNameModal();
+      }
+    }
+    $("saveIterationBtn").addEventListener("click",saveCurrentIteration);
+    $("cancelNameBtn").addEventListener("click",()=>{$("nameModal").classList.add("hidden");});
+    $("nameForm").addEventListener("submit",evt=>{evt.preventDefault();generateReport();});
+    $("editNameBtn").addEventListener("click",openNameModal);
+    $("savePdfBtn").addEventListener("click",saveReportAsPdf);
+    $("saveJpegBtn").addEventListener("click",saveReportAsJpeg);
+    $("addWaterBtn").addEventListener("click",addWater);
+    $("resetTestBtn").addEventListener("click",resetTest);
+
+    function showScreen(screen){
+      const design=screen==="design";
+      $("designScreen").classList.toggle("hidden",!design);$("testScreen").classList.toggle("hidden",design);$("reportScreen").classList.add("hidden");
+      $("designTab").classList.toggle("active",design);$("designTab").setAttribute("aria-selected",String(design));
+      $("testTab").classList.toggle("active",!design);$("testTab").setAttribute("aria-selected",String(!design));
+      $("introEyebrow").textContent=design?"Plan • connect • refine":"Incremental load • static structure analysis";
+      $("introTitle").textContent=design?"Build a bridge that carries the bucket.":"How much water can your bridge hold?";
+      $("introDescription").textContent=design?"Build the original bridge, test it with the bucket, then revise your design for two more rounds. Connect adjacent joints in the side or shared top/bottom profile.":"A 7 gallon bucket hangs from the middle of your bridge. Add water to measure how much weight your bridge can hold.";
+      $("stepChip").textContent=design?"DESIGN "+Math.min(state.iterationIndex+1,3)+" OF 3 · "+(ROUND_NAMES[state.iterationIndex]||"REPORT READY").toUpperCase():"TEST MODE";
+      if(!design)renderTest();
+    }
+    $("designTab").addEventListener("click",()=>showScreen("design"));
+    $("testTab").addEventListener("click",()=>showScreen("test"));
+
+    // Start with an empty bridge for the original design.
+    renderBoard();
+    renderIterationProgress();
+    renderTest();
+  })();
+  </script>
+</body>
+</html>
